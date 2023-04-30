@@ -1,49 +1,90 @@
+// Importation des Hooks useState et useEffect de React
 import React, { useState, useEffect } from 'react'
+
+// Importation des Hooks useLocation et useNavigate de react-router-dom
 import { useLocation, useNavigate } from 'react-router-dom';
+
+// Importation d'ethers pour interagir avec le contrat Ethereum
 import { ethers } from 'ethers';
 
+// Importation du Contexte personnalisé
 import { useStateContext } from '../context';
+
+// Importation de composants personnalisés
 import { CountBox, CustomButton, Loader } from '../components';
+
+// Importation de fonctions personnalisées
 import { calculateBarPercentage, daysLeft } from '../utils';
+
+// Importation de l'image à afficher
 import { thirdweb } from '../assets';
 
+// Définition du composant fonctionnel CampaignDetails
 const CampaignDetails = () => {
+
+  // Récupération de la state à partir de l'URL actuelle grâce au Hook useLocation
   const { state } = useLocation();
+
+  // Récupération de la fonction navigate pour changer de route grâce au Hook useNavigate
   const navigate = useNavigate();
+
+  // Récupération des fonctions du contexte
   const { donate, getDonations, contract, address } = useStateContext();
 
+  // Déclaration du state isLoading qui est initialisé à false
   const [isLoading, setIsLoading] = useState(false);
+
+  // Déclaration du state amount qui est initialisé à une chaîne vide
   const [amount, setAmount] = useState('');
+
+  // Déclaration du state donators qui est initialisé à un tableau vide
   const [donators, setDonators] = useState([]);
 
+  // Appel de la fonction daysLeft pour calculer le nombre de jours restants
   const remainingDays = daysLeft(state.deadline);
 
+  // Définition d'une fonction asynchrone pour récupérer les donateurs
   const fetchDonators = async () => {
+    // Récupération des données à partir de la fonction getDonations qui renvoie une Promesse
     const data = await getDonations(state.pId);
-
+    
+    // Mise à jour du state donators avec les données récupérées
     setDonators(data);
   }
 
+  // Utilisation du Hook useEffect pour exécuter fetchDonators() à chaque fois que contract ou address changent
   useEffect(() => {
+
+    // Si le contrat est défini, alors on appelle la fonction fetchDonators()
     if(contract) fetchDonators();
   }, [contract, address])
 
+  // Définition d'une fonction asynchrone pour gérer les dons
   const handleDonate = async () => {
+
+    // Mise à jour du state isLoading à true
     setIsLoading(true);
 
+    // Appel de la fonction donate avec l'id de la campagne et le montant du don
     await donate(state.pId, amount); 
 
+    // Changement de route vers la page d'accueil
     navigate('/')
+
+    // Mise à jour du state isLoading à false
     setIsLoading(false);
   }
 
+  // Retourne le JSX du composant
   return (
     <div>
+
+      // Si isLoading est true, affiche le composant Loader
       {isLoading && <Loader />}
 
       <div className="w-full flex md:flex-row flex-col mt-10 gap-[30px]">
         <div className="flex-1 flex-col">
-          <img src={state.image} alt="campaign" className="w-full h-[410px] object-cover rounded-xl"/>
+          <img src={state.image} alt="campaign" className="w-full h-[410px] object-cover rounded-xl"/> // Affichage de l'image de la campagne
           <div className="relative w-full h-[5px] bg-[#3a3a43] mt-2">
             <div className="absolute h-full bg-[#4acd8d]" style={{ width: `${calculateBarPercentage(state.target, state.amountCollected)}%`, maxWidth: '100%'}}>
             </div>
